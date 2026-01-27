@@ -1,4 +1,4 @@
-import express from 'express';
+import { Router } from 'express';
 import {
   createNote,
   deleteNote,
@@ -7,21 +7,21 @@ import {
   updateNote,
 } from '../controllers/notesController.js';
 
-const router = express.Router();
+const router = Router();
 
-// GET /notes - отримати всі нотатки
+// GET /notes - отримати всі
 router.get('/notes', getAllNotes);
 
-// GET /notes/:noteId - отримати одну нотатку за ID
+// GET /notes/:noteId - отримати одну
 router.get('/notes/:noteId', getNoteById);
 
-// POST /notes - створити нову нотатку
+// POST /notes - створити
 router.post('/notes', createNote);
 
-// DELETE /notes/:noteId - видалити нотатку
+// DELETE /notes/:noteId - видалити
 router.delete('/notes/:noteId', deleteNote);
 
-// PATCH /notes/:noteId - оновити нотатку
+// PATCH /notes/:noteId - оновити
 router.patch('/notes/:noteId', updateNote);
 
 export default router;
