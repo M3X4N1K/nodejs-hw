@@ -1,41 +1,32 @@
 import createHttpError from 'http-errors';
 import Note from '../models/note.js';
 
-// Отримати всі нотатки з пагінацією, фільтрацією та пошуком
 export const getAllNotes = async (req, res, next) => {
   try {
-    // Отримуємо параметри. Завдяки валідації (яку підключимо далі),
-    // page та perPage вже будуть числами та матимуть дефолтні значення.
     const { page = 1, perPage = 10, tag, search } = req.query;
 
-    // Формуємо фільтр пошуку
-    const filter = {};
-    
-    // Якщо передано тег — додаємо до фільтру
+    // Фільтруємо ТІЛЬКИ нотатки поточного користувача
+    const filter = {
+      userId: req.user._id,
+    };
+
     if (tag) {
       filter.tag = tag;
     }
 
-    // Якщо передано текст пошуку — використовуємо $text оператор MongoDB
     if (search) {
       filter.$text = { $search: search };
     }
 
-    // Рахуємо, скільки записів пропустити
     const skip = (page - 1) * perPage;
 
-    // Виконуємо два запити паралельно:
-    // 1. Отримуємо самі нотатки (з лімітом і пропуском)
-    // 2. Рахуємо загальну кількість нотаток, що підходять під фільтр
     const [notes, totalNotes] = await Promise.all([
       Note.find(filter).skip(skip).limit(perPage),
       Note.countDocuments(filter),
     ]);
 
-    // Рахуємо кількість сторінок
     const totalPages = Math.ceil(totalNotes / perPage);
 
-    // Відправляємо розширену відповідь
     res.status(200).json({
       status: 200,
       message: 'Successfully found notes!',
@@ -54,9 +45,11 @@ export const getAllNotes = async (req, res, next) => {
 
 export const getNoteById = async (req, res, next) => {
   const { noteId } = req.params;
-  
+  const userId = req.user._id;
+
   try {
-    const note = await Note.findById(noteId);
+    // Шукаємо нотатку, яка має цей ID І належить цьому користувачу
+    const note = await Note.findOne({ _id: noteId, userId });
 
     if (!note) {
       throw createHttpError(404, 'Note not found');
@@ -74,7 +67,11 @@ export const getNoteById = async (req, res, next) => {
 
 export const createNote = async (req, res, next) => {
   try {
-    const note = await Note.create(req.body);
+    // Додаємо userId до нової нотатки
+    const note = await Note.create({
+      ...req.body,
+      userId: req.user._id,
+    });
 
     res.status(201).json({
       status: 201,
@@ -88,18 +85,19 @@ export const createNote = async (req, res, next) => {
 
 export const deleteNote = async (req, res, next) => {
   const { noteId } = req.params;
+  const userId = req.user._id;
 
   try {
-    const note = await Note.findByIdAndDelete(noteId);
+    const note = await Note.findOneAndDelete({ _id: noteId, userId });
 
     if (!note) {
       throw createHttpError(404, 'Note not found');
     }
 
     res.status(200).json({
-        status: 200,
-        message: 'Successfully deleted a note!',
-        data: note,
+      status: 200,
+      message: 'Successfully deleted a note!',
+      data: note,
     });
   } catch (error) {
     next(error);
@@ -108,11 +106,16 @@ export const deleteNote = async (req, res, next) => {
 
 export const updateNote = async (req, res, next) => {
   const { noteId } = req.params;
+  const userId = req.user._id;
 
   try {
-    const result = await Note.findByIdAndUpdate(noteId, req.body, {
-      new: true,
-    });
+    const result = await Note.findOneAndUpdate(
+      { _id: noteId, userId },
+      req.body,
+      {
+        new: true,
+      }
+    );
 
     if (!result) {
       throw createHttpError(404, 'Note not found');

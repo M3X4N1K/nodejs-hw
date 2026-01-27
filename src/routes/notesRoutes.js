@@ -13,10 +13,13 @@ import {
   noteIdSchema,
   updateNoteSchema,
 } from '../validations/notesValidation.js';
+import { authenticate } from '../middleware/authenticate.js'; // 1. Імпорт
 
 const router = Router();
 
-// GET /notes - валідуємо query параметри (page, perPage, tag, search)
+// 2. Вмикаємо захист для всіх маршрутів нижче
+router.use(authenticate);
+
 router.get(
   '/notes',
   celebrate({
@@ -25,7 +28,6 @@ router.get(
   getAllNotes
 );
 
-// GET /notes/:noteId - валідуємо параметр ID
 router.get(
   '/notes/:noteId',
   celebrate({
@@ -34,7 +36,6 @@ router.get(
   getNoteById
 );
 
-// POST /notes - валідуємо тіло запиту
 router.post(
   '/notes',
   celebrate({
@@ -43,7 +44,6 @@ router.post(
   createNote
 );
 
-// DELETE /notes/:noteId - валідуємо параметр ID
 router.delete(
   '/notes/:noteId',
   celebrate({
@@ -52,7 +52,6 @@ router.delete(
   deleteNote
 );
 
-// PATCH /notes/:noteId - валідуємо ID та тіло запиту
 router.patch(
   '/notes/:noteId',
   celebrate({
