@@ -15,8 +15,13 @@ const noteSchema = new mongoose.Schema(
     },
     tag: {
       type: String,
-      enum: TAGS, // Тепер беремо список із файлу constants
+      enum: TAGS,
       default: 'Todo',
+    },
+    userId: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'User',
+      required: true,
     },
   },
   {
@@ -25,7 +30,6 @@ const noteSchema = new mongoose.Schema(
   }
 );
 
-// Додаємо індекс для текстового пошуку по заголовку та вмісту
 noteSchema.index({ title: 'text', content: 'text' });
 
 const Note = mongoose.model('Note', noteSchema);
