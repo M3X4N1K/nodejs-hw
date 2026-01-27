@@ -22,17 +22,14 @@ app.use(notesRouter);
 app.use(notFoundHandler);
 app.use(errorHandler);
 
-const startServer = async () => {
-  try {
-    await connectMongoDB();
-    
-    app.listen(PORT, () => {
-      console.log(`Server is running on port ${PORT}`);
-    });
-  } catch (error) {
-    console.error('Failed to start server:', error);
-    process.exit(1);
-  }
-};
-
-startServer();
+// Використовуємо Top-level await замість обгортки startServer
+try {
+  await connectMongoDB();
+  
+  app.listen(PORT, () => {
+    console.log(`Server is running on port ${PORT}`);
+  });
+} catch (error) {
+  console.error('Failed to start server:', error);
+  process.exit(1);
+}
