@@ -1,4 +1,5 @@
-import express from 'express';
+import { Router } from 'express';
+import { celebrate } from 'celebrate';
 import {
   createNote,
   deleteNote,
@@ -6,22 +7,59 @@ import {
   getNoteById,
   updateNote,
 } from '../controllers/notesController.js';
+import {
+  createNoteSchema,
+  getAllNotesSchema,
+  noteIdSchema,
+  updateNoteSchema,
+} from '../validations/notesValidation.js';
 
-const router = express.Router();
+const router = Router();
 
-// GET /notes - отримати всі нотатки
-router.get('/notes', getAllNotes);
+// GET /notes - валідуємо query параметри (page, perPage, tag, search)
+router.get(
+  '/notes',
+  celebrate({
+    query: getAllNotesSchema,
+  }),
+  getAllNotes
+);
 
-// GET /notes/:noteId - отримати одну нотатку за ID
-router.get('/notes/:noteId', getNoteById);
+// GET /notes/:noteId - валідуємо параметр ID
+router.get(
+  '/notes/:noteId',
+  celebrate({
+    params: noteIdSchema,
+  }),
+  getNoteById
+);
 
-// POST /notes - створити нову нотатку
-router.post('/notes', createNote);
+// POST /notes - валідуємо тіло запиту
+router.post(
+  '/notes',
+  celebrate({
+    body: createNoteSchema,
+  }),
+  createNote
+);
 
-// DELETE /notes/:noteId - видалити нотатку
-router.delete('/notes/:noteId', deleteNote);
+// DELETE /notes/:noteId - валідуємо параметр ID
+router.delete(
+  '/notes/:noteId',
+  celebrate({
+    params: noteIdSchema,
+  }),
+  deleteNote
+);
 
-// PATCH /notes/:noteId - оновити нотатку
-router.patch('/notes/:noteId', updateNote);
+// PATCH /notes/:noteId - валідуємо ID та тіло запиту
+router.patch(
+  '/notes/:noteId',
+  celebrate({
+    params: noteIdSchema,
+    body: updateNoteSchema,
+  }),
+  updateNote
+);
 
 export default router;

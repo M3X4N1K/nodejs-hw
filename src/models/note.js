@@ -1,4 +1,5 @@
 import mongoose from 'mongoose';
+import { TAGS } from '../constants/tags.js';
 
 const noteSchema = new mongoose.Schema(
   {
@@ -14,7 +15,7 @@ const noteSchema = new mongoose.Schema(
     },
     tag: {
       type: String,
-      enum: ['Work', 'Personal', 'Meeting', 'Shopping', 'Ideas', 'Travel', 'Finance', 'Health', 'Important', 'Todo'],
+      enum: TAGS, // Тепер беремо список із файлу constants
       default: 'Todo',
     },
   },
@@ -23,6 +24,9 @@ const noteSchema = new mongoose.Schema(
     versionKey: false,
   }
 );
+
+// Додаємо індекс для текстового пошуку по заголовку та вмісту
+noteSchema.index({ title: 'text', content: 'text' });
 
 const Note = mongoose.model('Note', noteSchema);
 

@@ -1,29 +1,63 @@
 import createHttpError from 'http-errors';
 import Note from '../models/note.js';
 
-// Отримати всі нотатки
+// Отримати всі нотатки з пагінацією, фільтрацією та пошуком
 export const getAllNotes = async (req, res, next) => {
   try {
-    const notes = await Note.find();
+    // Отримуємо параметри. Завдяки валідації (яку підключимо далі),
+    // page та perPage вже будуть числами та матимуть дефолтні значення.
+    const { page = 1, perPage = 10, tag, search } = req.query;
+
+    // Формуємо фільтр пошуку
+    const filter = {};
     
+    // Якщо передано тег — додаємо до фільтру
+    if (tag) {
+      filter.tag = tag;
+    }
+
+    // Якщо передано текст пошуку — використовуємо $text оператор MongoDB
+    if (search) {
+      filter.$text = { $search: search };
+    }
+
+    // Рахуємо, скільки записів пропустити
+    const skip = (page - 1) * perPage;
+
+    // Виконуємо два запити паралельно:
+    // 1. Отримуємо самі нотатки (з лімітом і пропуском)
+    // 2. Рахуємо загальну кількість нотаток, що підходять під фільтр
+    const [notes, totalNotes] = await Promise.all([
+      Note.find(filter).skip(skip).limit(perPage),
+      Note.countDocuments(filter),
+    ]);
+
+    // Рахуємо кількість сторінок
+    const totalPages = Math.ceil(totalNotes / perPage);
+
+    // Відправляємо розширену відповідь
     res.status(200).json({
       status: 200,
       message: 'Successfully found notes!',
-      data: notes,
+      data: {
+        notes,
+        page,
+        perPage,
+        totalNotes,
+        totalPages,
+      },
     });
   } catch (error) {
     next(error);
   }
 };
 
-// Отримати одну нотатку за ID
 export const getNoteById = async (req, res, next) => {
   const { noteId } = req.params;
   
   try {
     const note = await Note.findById(noteId);
 
-    // Якщо нотатки немає в базі - кидаємо помилку 404
     if (!note) {
       throw createHttpError(404, 'Note not found');
     }
@@ -38,7 +72,6 @@ export const getNoteById = async (req, res, next) => {
   }
 };
 
-// Створити нову нотатку
 export const createNote = async (req, res, next) => {
   try {
     const note = await Note.create(req.body);
@@ -53,7 +86,6 @@ export const createNote = async (req, res, next) => {
   }
 };
 
-// Видалити нотатку
 export const deleteNote = async (req, res, next) => {
   const { noteId } = req.params;
 
@@ -74,12 +106,10 @@ export const deleteNote = async (req, res, next) => {
   }
 };
 
-// Оновити нотатку
 export const updateNote = async (req, res, next) => {
   const { noteId } = req.params;
 
   try {
-    // { new: true } повертає вже оновлену версію документа
     const result = await Note.findByIdAndUpdate(noteId, req.body, {
       new: true,
     });
