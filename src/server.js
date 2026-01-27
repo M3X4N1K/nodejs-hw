@@ -1,6 +1,7 @@
 import express from 'express';
 import cors from 'cors';
 import dotenv from 'dotenv';
+import { errors } from 'celebrate'; // 1. Імпорт обробника помилок валідації
 
 import { logger } from './middleware/logger.js';
 import { notFoundHandler } from './middleware/notFoundHandler.js';
@@ -19,10 +20,13 @@ app.use(express.json());
 
 app.use(notesRouter);
 
+// 2. Підключаємо обробник помилок валідації
+// Важливо: він має бути ПІСЛЯ роутів, але ПЕРЕД іншими обробниками помилок
+app.use(errors());
+
 app.use(notFoundHandler);
 app.use(errorHandler);
 
-// Використовуємо Top-level await замість обгортки startServer
 try {
   await connectMongoDB();
   
