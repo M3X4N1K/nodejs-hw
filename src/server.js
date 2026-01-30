@@ -1,14 +1,14 @@
 import express from 'express';
 import cors from 'cors';
 import dotenv from 'dotenv';
-import cookieParser from 'cookie-parser'; // 1. Імпорт парсера кукі
+import cookieParser from 'cookie-parser';
 import { errors } from 'celebrate';
 
 import { logger } from './middleware/logger.js';
 import { notFoundHandler } from './middleware/notFoundHandler.js';
 import { errorHandler } from './middleware/errorHandler.js';
 import notesRouter from './routes/notesRoutes.js';
-import authRouter from './routes/authRoutes.js'; // 2. Імпорт роутів авторизації
+import authRouter from './routes/authRoutes.js';
 import { connectMongoDB } from './db/connectMongoDB.js';
 
 dotenv.config();
@@ -19,10 +19,10 @@ const app = express();
 app.use(logger);
 app.use(cors());
 app.use(express.json());
-app.use(cookieParser()); // 3. Використання парсера кукі
+app.use(cookieParser());
 
-// Маршрути
-app.use('/auth', authRouter); // 4. Підключення авторизації
+// Підключаємо роутер БЕЗ префіксу (префікс тепер всередині authRoutes.js)
+app.use(authRouter);
 app.use(notesRouter);
 
 app.use(errors());

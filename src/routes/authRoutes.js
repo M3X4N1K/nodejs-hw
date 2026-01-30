@@ -1,40 +1,37 @@
 import { Router } from 'express';
 import { celebrate } from 'celebrate';
 import {
+  registerUser,
   loginUser,
   logoutUser,
   refreshUserSession,
-  registerUser,
 } from '../controllers/authController.js';
 import {
-  loginUserSchema,
   registerUserSchema,
+  loginUserSchema,
 } from '../validations/authValidation.js';
 
 const router = Router();
 
-// Реєстрація
+// Додаємо префікс /auth до шляхів
 router.post(
-  '/register',
+  '/auth/register',
   celebrate({
     body: registerUserSchema,
   }),
   registerUser
 );
 
-// Логін
 router.post(
-  '/login',
+  '/auth/login',
   celebrate({
     body: loginUserSchema,
   }),
   loginUser
 );
 
-// Refresh
-router.post('/refresh', refreshUserSession);
+router.post('/auth/logout', logoutUser);
 
-// Logout
-router.post('/logout', logoutUser);
+router.post('/auth/refresh', refreshUserSession);
 
 export default router;
