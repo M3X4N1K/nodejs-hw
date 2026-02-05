@@ -9,7 +9,7 @@ import { notFoundHandler } from './middleware/notFoundHandler.js';
 import { errorHandler } from './middleware/errorHandler.js';
 import notesRouter from './routes/notesRoutes.js';
 import authRouter from './routes/authRoutes.js';
-import userRouter from './routes/userRoutes.js'; // <--- 1. Імпорт
+import userRouter from './routes/userRoutes.js';
 import { connectMongoDB } from './db/connectMongoDB.js';
 
 dotenv.config();
@@ -22,13 +22,17 @@ app.use(cors());
 app.use(express.json());
 app.use(cookieParser());
 
-// Роути
 app.use(authRouter);
-app.use(userRouter); // <--- 2. Підключення
+app.use(userRouter);
 app.use(notesRouter);
 
-app.use(errors());
+// Виправлено порядок: спочатку 404
 app.use(notFoundHandler);
+
+// Потім обробка помилок валідації Celebrate
+app.use(errors());
+
+// В кінці загальний обробник помилок
 app.use(errorHandler);
 
 try {

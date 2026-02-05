@@ -1,6 +1,10 @@
 import createHttpError from 'http-errors';
 import bcrypt from 'bcrypt';
 import jwt from 'jsonwebtoken';
+import handlebars from 'handlebars'; // Додано
+import path from 'node:path';        // Додано
+import fs from 'node:fs/promises';   // Додано
+
 import User from '../models/user.js';
 import { Session } from '../models/session.js';
 import { createSession, setSessionCookies } from '../services/auth.js';
@@ -128,6 +132,7 @@ export const requestResetEmail = async (req, res, next) => {
     const user = await User.findOne({ email });
 
     if (!user) {
+      // З міркувань безпеки не кажемо, що юзера немає, але й листа не шлемо
       return res.status(200).json({
         status: 200,
         message: 'Password reset email sent successfully',
@@ -148,13 +153,28 @@ export const requestResetEmail = async (req, res, next) => {
 
     const resetLink = `${process.env.FRONTEND_DOMAIN}/reset-password?token=${resetToken}`;
 
+    // Читаємо та компілюємо шаблон тут
+    const templatePath = path.join(
+      process.cwd(),
+      'src',
+      'templates',
+      'reset-password-email.html'
+    );
+    
+    const templateSource = await fs.readFile(templatePath, 'utf-8');
+    const template = handlebars.compile(templateSource);
+    
+    const html = template({
+      name: user.username,
+      link: resetLink,
+    });
+
     try {
       await sendEmail({
+        from: process.env.SMTP_FROM, // Обов'язково передаємо від кого
         to: email,
-        data: {
-          name: user.username,
-          link: resetLink,
-        },
+        subject: 'Reset your password',
+        html,
       });
     } catch (err) {
       console.log(err);
