@@ -5,7 +5,7 @@ const userSchema = new mongoose.Schema(
     username: {
       type: String,
       trim: true,
-      // required не ставимо, бо заповнимо хуком, якщо не передали
+      // required не ставимо, бо заповнимо хуком
     },
     email: {
       type: String,
@@ -18,6 +18,10 @@ const userSchema = new mongoose.Schema(
       required: true,
       minLength: 8,
     },
+    avatar: {
+      type: String,
+      default: 'https://ac.goit.global/fullstack/react/default-avatar.jpg',
+    },
   },
   {
     timestamps: true,
@@ -25,14 +29,12 @@ const userSchema = new mongoose.Schema(
   }
 );
 
-// Видаляємо пароль з об'єкта, коли віддаємо його клієнту
 userSchema.methods.toJSON = function () {
   const obj = this.toObject();
   delete obj.password;
   return obj;
 };
 
-// Хук: якщо username не передали, він буде таким самим, як email
 userSchema.pre('save', function (next) {
   if (!this.username) {
     this.username = this.email;

@@ -5,15 +5,18 @@ import {
   loginUser,
   logoutUser,
   refreshUserSession,
+  requestResetEmail,
+  resetPassword,
 } from '../controllers/authController.js';
 import {
   registerUserSchema,
   loginUserSchema,
+  requestResetEmailSchema,
+  resetPasswordSchema,
 } from '../validations/authValidation.js';
 
 const router = Router();
 
-// Додаємо префікс /auth до шляхів
 router.post(
   '/auth/register',
   celebrate({
@@ -33,5 +36,21 @@ router.post(
 router.post('/auth/logout', logoutUser);
 
 router.post('/auth/refresh', refreshUserSession);
+
+router.post(
+  '/auth/request-reset-email',
+  celebrate({
+    body: requestResetEmailSchema,
+  }),
+  requestResetEmail
+);
+
+router.post(
+  '/auth/reset-password',
+  celebrate({
+    body: resetPasswordSchema,
+  }),
+  resetPassword
+);
 
 export default router;

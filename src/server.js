@@ -9,6 +9,7 @@ import { notFoundHandler } from './middleware/notFoundHandler.js';
 import { errorHandler } from './middleware/errorHandler.js';
 import notesRouter from './routes/notesRoutes.js';
 import authRouter from './routes/authRoutes.js';
+import userRouter from './routes/userRoutes.js'; // <--- 1. Імпорт
 import { connectMongoDB } from './db/connectMongoDB.js';
 
 dotenv.config();
@@ -21,8 +22,9 @@ app.use(cors());
 app.use(express.json());
 app.use(cookieParser());
 
-// Підключаємо роутер БЕЗ префіксу (префікс тепер всередині authRoutes.js)
+// Роути
 app.use(authRouter);
+app.use(userRouter); // <--- 2. Підключення
 app.use(notesRouter);
 
 app.use(errors());
